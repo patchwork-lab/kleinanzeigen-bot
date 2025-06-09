@@ -2,13 +2,25 @@ import time
 import requests
 from bs4 import BeautifulSoup
 import random
-# Activate for Live-Usage:
-# SEARCH_URL = "https://www.kleinanzeigen.de/s-anzeige:angebote/fusion-ticket/k0"
-# Activate for Test-Usage:
-SEARCH_URL = "https://www.kleinanzeigen.de/s-zu-verschenken/c192"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# .env-Werte laden und prüfen
+SEARCH_URL = os.getenv("SEARCH_URL")
+if not SEARCH_URL or not SEARCH_URL.startswith("http"):
+    print("❌ SEARCH_URL fehlt oder ist ungültig. Bitte .env prüfen.")
+    exit(1)
+
+BLACKLIST_RAW = os.getenv("BLACKLIST", "")
+if not BLACKLIST_RAW:
+    print("⚠️ BLACKLIST nicht gesetzt. Es werden keine Begriffe gefiltert.")
+BLACKLIST = [word.strip().lower()
+             for word in BLACKLIST_RAW.split(",") if word.strip()]
 INTERVAL = (5, 10)
-BLACKLIST = ["bassliner", "shuttle", "bus"] # must be lowercase
 SEEN_FILE = "seen_ads.txt"
+
 
 def load_seen():
     try:
@@ -17,9 +29,11 @@ def load_seen():
     except FileNotFoundError:
         return set()
 
+
 def save_seen(ad_id):
     with open(SEEN_FILE, "a") as f:
         f.write(ad_id + "\n")
+
 
 def get_ads():
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -49,6 +63,7 @@ def get_ads():
             print(f"Fehler beim Verarbeiten einer Anzeige: {e}")
     return found
 
+
 def main():
     seen = load_seen()
     print("Search started...")
@@ -57,23 +72,20 @@ def main():
         ads = get_ads()
         for ad_id, url, title in ads:
             if ad_id not in seen:
-                print(f"[{time.strftime('%H:%M:%S')}] Neue Anzeige: {title} → {url}")
+                print(
+                    f"[{time.strftime('%H:%M:%S')}] Neue Anzeige: {title} → {url}")
                 save_seen(ad_id)
                 seen.add(ad_id)
-                # Activate for Test-Usage:
-                # try:
-                #     print(f"(TEST) Nachricht würde ausgelöst für: {url}")
-                # except Exception as e:
-                #     print(f"Fehler bei Testsendevorgang: {e}")
-
-                # Activate for Live-Usage:
                 try:
-                    res = requests.post("http://localhost:5000/send", json={"url": url}, timeout=5)
+                    res = requests.post(
+                        "http://127.0.0.1:5000/send", json={"url": url}, timeout=5)
                     if res.status_code != 200:
-                        print(f"Fehler beim Aufruf des Messengers: {res.status_code} – {res.text}")
+                        print(
+                            f"Fehler beim Aufruf des Messengers: {res.status_code} – {res.text}")
                 except requests.RequestException as e:
                     print(f"API-Verbindungsfehler: {e}")
         time.sleep(random.uniform(*INTERVAL))
+
 
 if __name__ == "__main__":
     main()
