@@ -145,7 +145,7 @@ kleinanzeigen-bot/
 - Benutzer-Login über Eingabe statt `.env`
 - Mehrfach-Absendeschutz
 - Frontend-UI zur Verwaltung
-- Erweiterte Filterlogik
+- Erweiterte blacklist/ignore Logik
 
 ---
 
@@ -306,7 +306,7 @@ kleinanzeigen-bot/
 - User login via input instead of `.env`
 - Multiple send protection
 - Frontend UI for management
-- Extended filter logic
+- Extended blacklist/ignore logic
 
 ---
 
