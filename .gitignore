@@ -6,3 +6,4 @@ chrome-profile/
 seen_ads.txt
 ignored_ads.txt
 /bin
+.DS_Store

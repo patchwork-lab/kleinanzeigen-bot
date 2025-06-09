@@ -35,14 +35,14 @@ def setup_driver():
 def is_logged_in(driver):
     # Navigate to user ads page to verify login
     driver.get("https://www.kleinanzeigen.de/m-meine-anzeigen.html")
-    time.sleep(3)
+    time.sleep(2)
     return "Meine Anzeigen" in driver.title or "anzeigen" in driver.page_source.lower()
 
 
 def send_message(driver, url):
     print(f"🔗 Opening listing: {url}")
     driver.get(url)
-    time.sleep(5)
+    time.sleep(3)
 
     try:
         # Locate message input field and enter the message
@@ -55,7 +55,7 @@ def send_message(driver, url):
         send_button = driver.find_element(
             By.CSS_SELECTOR, "button.viewad-contact-submit")
         driver.execute_script("arguments[0].click();", send_button)
-        time.sleep(4)
+        time.sleep(2)
 
         print(f"✅ Message sent successfully to: {url}")
     except Exception as e:
