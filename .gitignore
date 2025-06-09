@@ -2,3 +2,6 @@ venv/
 pycache/
 *.pyc
 .env
+chrome-profile/
+seen_ads.txt
+/bin

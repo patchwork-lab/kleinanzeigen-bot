@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import random
 # Activate for Live-Usage:
 # SEARCH_URL = "https://www.kleinanzeigen.de/s-anzeige:angebote/fusion-ticket/k0"
+# Activate for Test-Usage:
 SEARCH_URL = "https://www.kleinanzeigen.de/s-zu-verschenken/c192"
 INTERVAL = (5, 10)
 BLACKLIST = ["bassliner", "shuttle", "bus"] # must be lowercase
@@ -59,17 +60,19 @@ def main():
                 print(f"[{time.strftime('%H:%M:%S')}] Neue Anzeige: {title} → {url}")
                 save_seen(ad_id)
                 seen.add(ad_id)
-                try:
-                    print(f"(TEST) Nachricht würde ausgelöst für: {url}")
-                except Exception as e:
-                    print(f"Fehler bei Testsendevorgang: {e}")
-                # Activate for Live-Usage:
+                # Activate for Test-Usage:
                 # try:
-                #     res = requests.post("http://localhost:5000/send", json={"url": url}, timeout=5)
-                #     if res.status_code != 200:
-                #         print(f"Fehler beim Aufruf des Messengers: {res.status_code} – {res.text}")
-                # except requests.RequestException as e:
-                #     print(f"API-Verbindungsfehler: {e}")
+                #     print(f"(TEST) Nachricht würde ausgelöst für: {url}")
+                # except Exception as e:
+                #     print(f"Fehler bei Testsendevorgang: {e}")
+
+                # Activate for Live-Usage:
+                try:
+                    res = requests.post("http://localhost:5000/send", json={"url": url}, timeout=5)
+                    if res.status_code != 200:
+                        print(f"Fehler beim Aufruf des Messengers: {res.status_code} – {res.text}")
+                except requests.RequestException as e:
+                    print(f"API-Verbindungsfehler: {e}")
         time.sleep(random.uniform(*INTERVAL))
 
 if __name__ == "__main__":
