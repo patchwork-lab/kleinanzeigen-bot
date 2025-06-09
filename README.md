@@ -151,7 +151,7 @@ kleinanzeigen-bot/
 
 ## Kontakt
 
-Georg | [github.com/gvogelge](https://github.com/patchwork-lab)
+Georg | [github.com/patchwork-lab](https://github.com/patchwork-lab)
 
 ---
 
