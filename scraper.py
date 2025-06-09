@@ -5,50 +5,39 @@ import random
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 
-# Load and validate environment configuration
+# Config
 SEARCH_URL = os.getenv("SEARCH_URL")
 if not SEARCH_URL or not SEARCH_URL.startswith("http"):
     print("❌ SEARCH_URL is missing or invalid. Please check your .env file.")
     exit(1)
 
 BLACKLIST_RAW = os.getenv("BLACKLIST", "")
-if not BLACKLIST_RAW:
-    print("⚠️ BLACKLIST is not set. No keywords will be filtered.")
 BLACKLIST = [word.strip().lower()
              for word in BLACKLIST_RAW.split(",") if word.strip()]
 
-INTERVAL = (5, 10)  # Delay between requests in seconds (min, max)
+INTERVAL = (5, 10)  # seconds
 SEEN_FILE = "seen_ads.txt"
-IGNORED_FILE = "ignored_ads.txt"  # Optional: Track ignored ads for debugging
+IGNORED_FILE = "ignored_ads.txt"
 
-# Load already seen ad IDs
+# Utility functions
 
 
-def load_seen():
+def load_ids(filename):
     try:
-        with open(SEEN_FILE, "r") as f:
+        with open(filename, "r") as f:
             return set(line.strip() for line in f)
     except FileNotFoundError:
         return set()
 
-# Save a seen ad ID
 
-
-def save_seen(ad_id):
-    with open(SEEN_FILE, "a") as f:
+def save_id(filename, ad_id):
+    with open(filename, "a") as f:
         f.write(ad_id + "\n")
 
-# Save an ignored ad ID (optional, not used in matching)
-
-
-def save_ignored(ad_id):
-    with open(IGNORED_FILE, "a") as f:
-        f.write(ad_id + "\n")
-
-# Scrape the search results for ads
+# Scrape search results for ads
 
 
 def get_ads():
@@ -61,9 +50,12 @@ def get_ads():
     for ad in ads:
         try:
             ad_id = ad.get("data-adid")
+            if not ad_id:
+                continue  # Skip ads with missing ID
+
             link_tag = ad.select_one("a")
             title_tag = ad.select_one(".text-module-begin")
-            if not ad_id or not link_tag or not title_tag:
+            if not link_tag or not title_tag:
                 continue
 
             link = link_tag.get("href")
@@ -71,8 +63,10 @@ def get_ads():
             title_lc = title.lower()
 
             if any(bad_word in title_lc for bad_word in BLACKLIST):
-                print(f"Ignored due to blacklist: {title}")
-                save_ignored(ad_id)
+                if ad_id not in ignored:
+                    print(f"Ignored due to blacklist: {title}")
+                    save_id(IGNORED_FILE, ad_id)
+                    ignored.add(ad_id)
                 continue
 
             found.append((ad_id, f"https://www.kleinanzeigen.de{link}", title))
@@ -80,30 +74,35 @@ def get_ads():
             print(f"Error processing ad: {e}")
     return found
 
-# Main loop: continuously check for new ads
+# Main loop
 
 
 def main():
-    seen = load_seen()
+    global seen, ignored
+    seen = load_ids(SEEN_FILE)
+    ignored = load_ids(IGNORED_FILE)
+
     print("🔎 Search started...")
 
     while True:
         ads = get_ads()
         for ad_id, url, title in ads:
-            if ad_id not in seen:
-                print(
-                    f"[{time.strftime('%H:%M:%S')}] New ad found: {title} → {url}")
-                save_seen(ad_id)
-                seen.add(ad_id)
-                try:
-                    res = requests.post(
-                        "http://127.0.0.1:5000/send", json={"url": url}, timeout=5
-                    )
-                    if res.status_code != 200:
-                        print(
-                            f"❌ Messenger call failed: {res.status_code} – {res.text}")
-                except requests.RequestException as e:
-                    print(f"❌ API connection error: {e}")
+            if ad_id in seen or ad_id in ignored:
+                continue
+
+            print(f"[{time.strftime('%H:%M:%S')}] New ad found: {title} → {url}")
+            save_id(SEEN_FILE, ad_id)
+            seen.add(ad_id)
+
+            try:
+                res = requests.post(
+                    "http://127.0.0.1:5000/send", json={"url": url}, timeout=5)
+                if res.status_code != 200:
+                    print(
+                        f"❌ Messenger call failed: {res.status_code} – {res.text}")
+            except requests.RequestException as e:
+                print(f"❌ API connection error: {e}")
+
         time.sleep(random.uniform(*INTERVAL))
 
 
