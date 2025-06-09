@@ -35,6 +35,24 @@ Ein Python-basierter Bot, der **automatisch auf neue Anzeigen auf kleinanzeigen.
 
 ---
 
+### Chromedriver (nur lokal in der venv nutzen)
+
+1. **Version prüfen**:  
+   Öffne Chrome und rufe `chrome://settings/help` auf – notiere dir die Version.
+
+2. **Passenden Chromedriver herunterladen**:  
+   → [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads)
+
+3. **Entpacken und lokal speichern**:
+
+   ```bash
+   unzip chromedriver_mac64.zip
+   mv chromedriver ./venv/bin/
+   chmod +x ./venv/bin/chromedriver
+   ```
+
+---
+
 ## Konfiguration
 
 Erstelle eine Datei `.env` im Projektverzeichnis (Beispiel: siehe `.env.example`):
@@ -194,6 +212,24 @@ A Python-based bot that **automatically responds to new listings on kleinanzeige
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
+   ```
+
+---
+
+### Chromedriver (local use inside venv only)
+
+1. **Check your Chrome version**:  
+   Open Chrome and go to `chrome://settings/help` – note the exact version.
+
+2. **Download the matching Chromedriver**:  
+   → [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads)
+
+3. **Unzip and place inside your venv**:
+
+   ```bash
+   unzip chromedriver_mac64.zip
+   mv chromedriver ./venv/bin/
+   chmod +x ./venv/bin/chromedriver
    ```
 
 ---
